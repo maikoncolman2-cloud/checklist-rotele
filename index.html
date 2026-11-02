@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Checklist Armazém Rotele</title>
+<meta name="description" content="Checklists de padrões, DTO e GOPs do Armazém Rotele">
+<meta name="theme-color" content="#1f2a37">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Checklist Rotele">
+<style>
+  :root { --bg:#1f2a37; --fg:#fff; --acc:#e8650a; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  #app { position:fixed; inset:0; top:env(safe-area-inset-top); width:100%; height:calc(100% - env(safe-area-inset-top)); border:0; background:#f3f4f6; }
+  #bar { position:fixed; left:0; right:0; bottom:0; padding:8px 12px calc(8px + env(safe-area-inset-bottom)); display:none;
+         background:rgba(31,42,55,.96); font-size:14px; align-items:center; gap:10px; justify-content:space-between; z-index:5; }
+  #bar a, #bar button { color:#fff; background:var(--acc); border:0; border-radius:8px; padding:8px 12px; font-size:14px; text-decoration:none; }
+  #bar button.sec { background:transparent; border:1px solid #fff6; }
+  #off { position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:24px; text-align:center; }
+  #off img { width:96px; height:96px; border-radius:20px; }
+  #off button { color:#fff; background:var(--acc); border:0; border-radius:10px; padding:12px 18px; font-size:16px; }
+</style>
+</head>
+<body>
+<iframe id="app" title="Checklist Armazém Rotele"
+  src="https://script.google.com/macros/s/AKfycbyDMg4dCZfnVDDl7akjABRWY-OPuleOcErR9C2hIIt4nr_XA2EPekQZjqHl6xeDn7HtLg/exec"
+  allow="geolocation *; camera *; clipboard-write *"
+  allowfullscreen></iframe>
+
+<div id="bar">
+  <span>Não carregou ou a câmera/localização não abre?</span>
+  <span>
+    <a id="abrir" target="_blank" rel="noopener" href="https://script.google.com/macros/s/AKfycbyDMg4dCZfnVDDl7akjABRWY-OPuleOcErR9C2hIIt4nr_XA2EPekQZjqHl6xeDn7HtLg/exec">Abrir no navegador</a>
+    <button class="sec" onclick="document.getElementById('bar').style.display='none'">Fechar</button>
+  </span>
+</div>
+
+<div id="off">
+  <img src="icon-192.png" alt="">
+  <strong>Sem conexão com a internet</strong>
+  <span>O checklist precisa de internet para registrar no sistema. Verifique o Wi-Fi ou os dados móveis.</span>
+  <button onclick="location.reload()">Tentar de novo</button>
+</div>
+
+<script>
+  // Sem conexão: mostra aviso (o app não funciona offline).
+  function rede() {
+    var on = navigator.onLine;
+    document.getElementById('off').style.display = on ? 'none' : 'flex';
+    document.getElementById('app').style.display = on ? 'block' : 'none';
+  }
+  addEventListener('online', function(){ location.reload(); });
+  addEventListener('offline', rede);
+  rede();
+  // Mostra o atalho "Abrir no navegador" por alguns segundos e sempre que o app demorar a carregar.
+  var bar = document.getElementById('bar'), carregou = false;
+  document.getElementById('app').addEventListener('load', function(){ carregou = true; });
+  setTimeout(function(){ bar.style.display = 'flex'; setTimeout(function(){ if (carregou) bar.style.display = 'none'; }, 8000); }, carregou ? 0 : 12000);
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
+</script>
+</body>
+</html>
