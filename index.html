@@ -24,6 +24,12 @@
   #off { position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:24px; text-align:center; }
   #off img { width:96px; height:96px; border-radius:20px; }
   #off button { color:#fff; background:var(--acc); border:0; border-radius:10px; padding:12px 18px; font-size:16px; }
+  #inst { position:fixed; left:0; right:0; top:0; z-index:6; display:none; gap:10px; align-items:center; justify-content:space-between;
+          padding:calc(8px + env(safe-area-inset-top)) 12px 8px; background:var(--bg); border-bottom:3px solid var(--acc); font-size:14px; line-height:1.3; }
+  #inst b { color:#ffb37a; }
+  #inst .bt { display:flex; gap:8px; flex-shrink:0; }
+  #inst a, #inst button { color:#fff; background:var(--acc); border:0; border-radius:8px; padding:9px 12px; font-size:14px; text-decoration:none; white-space:nowrap; }
+  #inst button.sec { background:transparent; border:1px solid #fff6; }
 </style>
 </head>
 <body>
@@ -37,6 +43,15 @@
   <span>
     <a id="abrir" target="_blank" rel="noopener" href="https://script.google.com/macros/s/AKfycbyDMg4dCZfnVDDl7akjABRWY-OPuleOcErR9C2hIIt4nr_XA2EPekQZjqHl6xeDn7HtLg/exec">Abrir no navegador</a>
     <button class="sec" onclick="document.getElementById('bar').style.display='none'">Fechar</button>
+  </span>
+</div>
+
+<div id="inst">
+  <span id="instTxt"></span>
+  <span class="bt">
+    <button id="instBtn" style="display:none">Instalar app</button>
+    <a id="instChrome" style="display:none" href="intent://maikoncolman2-cloud.github.io/checklist-rotele/#Intent;scheme=https;package=com.android.chrome;end">Abrir no Chrome</a>
+    <button class="sec" id="instFechar">Agora não</button>
   </span>
 </div>
 
@@ -62,6 +77,44 @@
   document.getElementById('app').addEventListener('load', function(){ carregou = true; });
   setTimeout(function(){ bar.style.display = 'flex'; setTimeout(function(){ if (carregou) bar.style.display = 'none'; }, 8000); }, carregou ? 0 : 12000);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
+
+  // Faixa "Instalar app": aparece só quando o app ainda não está instalado (aberto no navegador).
+  (function () {
+    var ua = navigator.userAgent || '';
+    var instalado = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    if (instalado) return;
+    var inst = document.getElementById('inst'), txt = document.getElementById('instTxt');
+    var btn = document.getElementById('instBtn'), chrome = document.getElementById('instChrome');
+    var ios = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && 'ontouchend' in document);
+    var android = /Android/i.test(ua);
+    var interno = /WhatsApp|Instagram|FBAN|FBAV|FB_IAB|Line\/|; wv\)/i.test(ua); // navegador interno de outro app
+    var iosOutro = ios && /CriOS|FxiOS|EdgiOS/i.test(ua);                        // iPhone fora do Safari
+    function mostra(html) {
+      txt.innerHTML = html; inst.style.display = 'flex';
+      document.getElementById('app').style.top = inst.offsetHeight + 'px';
+      document.getElementById('app').style.height = 'calc(100% - ' + inst.offsetHeight + 'px)';
+    }
+    function esconde() { inst.style.display = 'none'; document.getElementById('app').style.top = ''; document.getElementById('app').style.height = ''; }
+    document.getElementById('instFechar').onclick = esconde;
+    if (interno) {
+      if (android) { chrome.style.display = ''; mostra('Para <b>instalar</b>, abra no <b>Chrome</b> (ou toque em ⋮ → "Abrir no navegador").'); }
+      else mostra('Para <b>instalar</b>, abra no <b>Safari</b>: toque em ••• ou no ícone da bússola → "Abrir no Safari".');
+      return;
+    }
+    if (ios) {
+      mostra(iosOutro ? 'Para <b>instalar</b> no iPhone, abra este endereço no <b>Safari</b>.'
+                      : 'Para <b>instalar</b>: toque em <b>Compartilhar</b> (□↑) → <b>Adicionar à Tela de Início</b> → Adicionar.');
+      return;
+    }
+    var evento = null;
+    addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault(); evento = e; btn.style.display = '';
+      mostra('Instale o <b>Checklist Rotele</b> na tela do celular.');
+    });
+    btn.onclick = function () { if (!evento) return; evento.prompt(); evento.userChoice.then(function () { evento = null; esconde(); }); };
+    addEventListener('appinstalled', esconde);
+    if (android) setTimeout(function () { if (!evento) mostra('Para <b>instalar</b>: menu <b>⋮</b> → <b>Instalar app</b> (ou "Adicionar à tela inicial").'); }, 4000);
+  })();
 </script>
 </body>
 </html>
