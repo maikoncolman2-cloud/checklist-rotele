@@ -1,2 +1,2 @@
 # checklist-rotele
-App instalavel (PWA) do Checklist Armazem Rotele - are o app do Google Apps Script
+App instalavel (PWA) do Checklist Armazem Rotele: abre o app do Google Apps Script em tela cheia. Precisa de internet.
