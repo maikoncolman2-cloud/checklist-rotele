@@ -1,0 +1,10 @@
+{
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "arquivo": "apk/dpo-armazem-rotele.apk",
+  "sha256": "48d2d866621500cc74d5f704a92238b273a18f47135c671e6bf4eaaef2730de8",
+  "certificadoSha256": "94:93:28:42:D5:FA:E5:46:45:89:21:82:1B:BA:40:E4:16:56:3E:EF:CE:F6:C2:4D:3A:98:A2:9F:E1:8C:F5:DD",
+  "pacote": "br.com.rotele.dpoarmazem",
+  "publicado": "2026-11-05",
+  "novidades": "Primeira versão do app Android. O conteúdo (checklists, tarefas, projetos, auditoria) se atualiza sozinho pelo servidor."
+}

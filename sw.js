@@ -1,6 +1,6 @@
 // Service worker do app instalável: guarda só a "casca" (ícones e página inicial).
 // Os checklists e os dados continuam no Google (precisa de internet); nada é guardado offline.
-var CACHE = 'checklist-rotele-v6';
+var CACHE = 'dpo-armazem-v7';
 var CASCA = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {

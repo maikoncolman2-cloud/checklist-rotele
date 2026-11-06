@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Checklist Armazém Rotele</title>
-<meta name="description" content="Checklists de padrões, DTO e GOPs do Armazém Rotele">
+<title>DPO ARMAZÉM · Rotele</title>
+<meta name="description" content="Checklists, produtividade, planos de ação, projetos e auditoria DPO do Armazém Rotele">
 <meta name="theme-color" content="#1f2a37">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Checklist Rotele">
+<meta name="apple-mobile-web-app-title" content="DPO Armazém">
 <style>
   :root { --bg:#1f2a37; --fg:#fff; --acc:#e8650a; }
   html,body { margin:0; height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
@@ -33,7 +33,7 @@
 </style>
 </head>
 <body>
-<iframe id="app" title="Checklist Armazém Rotele"
+<iframe id="app" title="DPO ARMAZÉM · Rotele"
   src="https://script.google.com/macros/s/AKfycbyDMg4dCZfnVDDl7akjABRWY-OPuleOcErR9C2hIIt4nr_XA2EPekQZjqHl6xeDn7HtLg/exec"
   allow="geolocation *; camera *; clipboard-write *"
   allowfullscreen></iframe>
@@ -81,7 +81,19 @@
   // Faixa "Instalar app": aparece só quando o app ainda não está instalado (aberto no navegador).
   (function () {
     var ua = navigator.userAgent || '';
-    var instalado = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    var apkV = Number((location.search.match(/[?&]apk=(\d+)/) || [])[1] || 0);   // aberto pelo app Android (APK)
+    var instalado = apkV > 0 || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    var apkLink = ' — ou <a href="apk/dpo-armazem-rotele.apk" style="background:none;padding:0;color:#ffb37a;text-decoration:underline">baixe o app Android (APK)</a>';
+    if (apkV > 0) {
+      // APK instalado: o conteúdo atualiza sozinho (vem do servidor). Só avisa quando o próprio APK tiver versão nova.
+      fetch('versao-apk.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (v) {
+        if (Number(v.versionCode) > apkV) {
+          var inst = document.getElementById('inst'); document.getElementById('instTxt').innerHTML = 'Nova versão do app Android (<b>' + v.versionName + '</b>). ' + (v.novidades || '');
+          var a = document.getElementById('instChrome'); a.href = v.arquivo; a.textContent = 'Atualizar'; a.style.display = ''; inst.style.display = 'flex';
+          document.getElementById('instFechar').onclick = function () { inst.style.display = 'none'; };
+        }
+      }).catch(function () { });
+    }
     if (instalado) return;
     var inst = document.getElementById('inst'), txt = document.getElementById('instTxt');
     var btn = document.getElementById('instBtn'), chrome = document.getElementById('instChrome');
@@ -109,11 +121,11 @@
     var evento = null;
     addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault(); evento = e; btn.style.display = '';
-      mostra('Instale o <b>Checklist Rotele</b> na tela do celular.');
+      mostra('Instale o <b>DPO Armazém</b> na tela do celular' + apkLink + '.');
     });
     btn.onclick = function () { if (!evento) return; evento.prompt(); evento.userChoice.then(function () { evento = null; esconde(); }); };
     addEventListener('appinstalled', esconde);
-    if (android) setTimeout(function () { if (!evento) mostra('Para <b>instalar</b>: menu <b>⋮</b> → <b>Instalar app</b> (ou "Adicionar à tela inicial").'); }, 4000);
+    if (android) setTimeout(function () { if (!evento) mostra('Para <b>instalar</b>: menu <b>⋮</b> → <b>Instalar app</b> (ou "Adicionar à tela inicial")' + apkLink + '.'); }, 4000);
   })();
 </script>
 </body>

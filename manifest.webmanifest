@@ -1,7 +1,7 @@
 {
-  "name": "Checklist Armazém Rotele",
-  "short_name": "Checklist Rotele",
-  "description": "Checklists de padrões, DTO e GOPs do Armazém Rotele",
+  "name": "DPO ARMAZÉM · Rotele",
+  "short_name": "DPO Armazém",
+  "description": "Checklists, produtividade, planos de ação, projetos e auditoria DPO do Armazém Rotele",
   "lang": "pt-BR",
   "start_url": "./",
   "scope": "./",
