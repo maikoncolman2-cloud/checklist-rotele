@@ -106,3 +106,13 @@ jobs:
           prerelease: true
           body: "Arquivo intermediário. O APK para instalar fica em https://maikoncolman2-cloud.github.io/checklist-rotele/apk/"
           files: dpo-armazem-rotele-v${{ inputs.versionCode }}-sem-assinatura.apk
+      - name: Guardar o arquivo no ramo apk-build (para assinatura fora do GitHub)
+        run: |
+          mkdir -p /tmp/out && cp dpo-armazem-rotele-v*-sem-assinatura.apk /tmp/out/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch --orphan apk-build
+          cp /tmp/out/*.apk .
+          git add dpo-armazem-rotele-v*-sem-assinatura.apk
+          git commit -m "Compilação ${{ inputs.versionName }} (sem assinatura)"
+          git push -f origin apk-build
