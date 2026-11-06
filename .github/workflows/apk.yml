@@ -1,0 +1,108 @@
+name: APK Android (DPO Armazém)
+# Gera o app Android (Trusted Web Activity) que abre o DPO ARMAZÉM · Rotele no Chrome em tela de app.
+# O APK sai SEM assinatura; a assinatura é feita fora do GitHub (a chave não fica neste repositório público).
+on:
+  workflow_dispatch:
+    inputs:
+      versionCode:
+        description: 'Número da versão (inteiro, aumenta a cada APK novo)'
+        default: '1'
+      versionName:
+        description: 'Nome da versão'
+        default: '1.0.0'
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Montar projeto Android
+        env:
+          VC: ${{ inputs.versionCode }}
+          VN: ${{ inputs.versionName }}
+        run: |
+          set -e
+          P=android-build; R=$P/app/src/main/res
+          mkdir -p $R/values $R/mipmap-xxxhdpi $R/mipmap-xxhdpi $R/mipmap-xhdpi
+          cp icon-512.png $R/mipmap-xxxhdpi/ic_launcher.png
+          cp icon-192.png $R/mipmap-xxhdpi/ic_launcher.png
+          cp icon-192.png $R/mipmap-xhdpi/ic_launcher.png
+          cat > $P/settings.gradle <<'EOF'
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositories { google(); mavenCentral() } }
+          rootProject.name = 'DPOArmazemRotele'
+          include ':app'
+          EOF
+          cat > $P/build.gradle <<'EOF'
+          plugins { id 'com.android.application' version '8.5.2' apply false }
+          EOF
+          printf 'android.useAndroidX=true\norg.gradle.jvmargs=-Xmx2g\n' > $P/gradle.properties
+          cat > $P/app/build.gradle <<EOF
+          plugins { id 'com.android.application' }
+          android {
+            namespace 'br.com.rotele.dpoarmazem'
+            compileSdk 34
+            defaultConfig {
+              applicationId 'br.com.rotele.dpoarmazem'
+              minSdk 24
+              targetSdk 34
+              versionCode ${VC}
+              versionName '${VN}'
+            }
+            buildTypes { release { minifyEnabled false } }
+            compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+          }
+          dependencies { implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0' }
+          EOF
+          cat > $R/values/strings.xml <<'EOF'
+          <resources>
+            <string name="app_name">DPO Armazém</string>
+            <string name="asset_statements">[{ \"relation\": [\"delegate_permission/common.handle_all_urls\"], \"target\": { \"namespace\": \"web\", \"site\": \"https://maikoncolman2-cloud.github.io\" } }]</string>
+          </resources>
+          EOF
+          cat > $R/values/colors.xml <<'EOF'
+          <resources><color name="primaria">#1F2A37</color></resources>
+          EOF
+          cat > $P/app/src/main/AndroidManifest.xml <<EOF
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.INTERNET"/>
+            <application android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:allowBackup="false" android:supportsRtl="true">
+              <meta-data android:name="asset_statements" android:resource="@string/asset_statements"/>
+              <activity android:name="com.google.androidbrowserhelper.trusted.LauncherActivity" android:exported="true" android:label="@string/app_name" android:theme="@android:style/Theme.Translucent.NoTitleBar">
+                <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL" android:value="https://maikoncolman2-cloud.github.io/checklist-rotele/?apk=${VC}"/>
+                <meta-data android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR" android:resource="@color/primaria"/>
+                <meta-data android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR" android:resource="@color/primaria"/>
+                <meta-data android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY" android:value="customtabs"/>
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN"/>
+                  <category android:name="android.intent.category.LAUNCHER"/>
+                </intent-filter>
+              </activity>
+            </application>
+            <queries><intent><action android:name="android.support.customtabs.action.CustomTabsService"/></intent></queries>
+          </manifest>
+          EOF
+      - name: Compilar (release sem assinatura)
+        working-directory: android-build
+        run: gradle assembleRelease --no-daemon --stacktrace
+      - name: Alinhar
+        run: |
+          BT=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)
+          "$ANDROID_HOME/build-tools/$BT/zipalign" -p -f 4 android-build/app/build/outputs/apk/release/app-release-unsigned.apk dpo-armazem-rotele-v${{ inputs.versionCode }}-sem-assinatura.apk
+          sha256sum dpo-armazem-rotele-v${{ inputs.versionCode }}-sem-assinatura.apk
+      - name: Publicar compilação interna (não instalar — falta assinar)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-build-${{ inputs.versionCode }}-${{ github.run_number }}
+          name: "Compilação interna ${{ inputs.versionName }} (sem assinatura — não instalar)"
+          prerelease: true
+          body: "Arquivo intermediário. O APK para instalar fica em https://maikoncolman2-cloud.github.io/checklist-rotele/apk/"
+          files: dpo-armazem-rotele-v${{ inputs.versionCode }}-sem-assinatura.apk
